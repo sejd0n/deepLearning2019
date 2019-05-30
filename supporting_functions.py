@@ -23,17 +23,23 @@ def uniform_random_n(start, stop, n):
     return numpy.random.uniform(start, stop, n)
 
 
-def get_scaling_factor(DataLoader, feature_index=0):
+def get_scaling_factor(DataLoader, TestLoader, feature_index=0):
     # returns the factor by which the iterator needs to be scaled to achieve zero weighted scaling
-    # sum = 0
-    # count = 0
-    # for i, data in enumerate(DataLoader):
-    #     features, label = data
-    #     sum += label
-    #     count += 1
-    #
-    # return sum/count
-    return -2952.11835930275
+     scale = 0
+     distance = 0
+     for i, data in enumerate(DataLoader):
+         features, label = data
+         if features > distance:
+             distance = features
+             scale = label
+     for i, data in enumerate(TestLoader):
+         features, label = data
+         if features > distance:
+             distance = features
+             scale = label
+  
+     return float(scale)    
+  
 
 
 def scale(DataLoader, scaling_factor, feature_index=0):
@@ -89,9 +95,9 @@ def numpy_data_to_trainloaders(numpy_data, train_ratio, dataloader_params):
 
     numpy.random.shuffle(numpy_data)
 
-    numpy_train = numpy_data[:train_objects]
+    numpy_train = numpy_data[:int(train_objects)]
     # numpy_validate = numpy_data[train_objects:(train_objects+validate_objects)]
-    numpy_test = numpy_data[train_objects:]
+    numpy_test = numpy_data[int(train_objects):]
 
     partition_train, labels_train = numpy_to_x_y(numpy_train)
     # partition_validate, labels, validate = nu
@@ -203,3 +209,34 @@ def predict_scenario(net, criterion, testloader):
     # print(all_inputs)
     all_predictions = net(torch.tensor(all_inputs))
     return total_loss, i+1, all_predictions
+
+def print_dataset(dataset):
+    for i, data in enumerate(dataset):
+        features, label = data
+        print(float(features), float(label))
+
+def get_LJ(x):
+    return 4*3*((1/x)**12-(1/x)**6)
+
+def get_LJ_list(x_values):
+    y_values = []
+    for x in x_values:
+        y_values.append(get_LJ(x))
+    return y_values
+
+def MSE(New, Old):
+    sum = 0
+    for x in range(len(New)):
+        sum += (New[x]+Old[x])**2
+
+    return sum/len(New)
+
+def SMAPE(New, Old):
+    sum = 0
+    for x in range(len(New)):
+        sum += abs(Old[x]-New[x])/((New[x]+Old[x])/2)
+
+    return sum/len(New)
+
+
+
