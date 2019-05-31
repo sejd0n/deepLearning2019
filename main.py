@@ -17,7 +17,11 @@ if __name__ == '__main__':
     runs = 1
     lower_boundary = 0.85
     upper_boundary = 3
+    max_iteration = 10000
     learning_rate = 0.01
+    solvers = ["adam", "sgd", "lbfgs"]
+    activations = ["relu", "logistic", "tanh"]
+    hidden_neurons = [50,100,150,200,250]
     x_values = sf.uniform_random_n(lower_boundary, upper_boundary, 30000)
     file_path = 'data/sigmau-.csv'
     true_data_epochs = 100
@@ -74,49 +78,52 @@ if __name__ == '__main__':
         # print("average loss is: {}".format(loss / count))
         # accuracies.append(float(loss / count))
         # print(sf.get_generalized_approximation(x_values).reshape)
-        clf = MLPRegressor(solver='adam', alpha=0.01, hidden_layer_sizes = (100), random_state = 1, max_iter=20000)
+        for s in range(3):
+            for a in range(3):
+                for n in range(5):
+                    clf = MLPRegressor(solver=solvers[s], activation=activations[a], alpha=0.01, hidden_layer_sizes = hidden_neurons[n], learning_rate_init=0.01,  random_state = 1, max_iter=max_iteration)
+                    print(clf)
 
+                    real_x_train_values = torch.tensor(scaled_real_trainLoader.list_IDs).reshape(-1,1)
+                    real_y_train_values = torch.tensor(scaled_real_trainLoader.labels).reshape(-1,1)
 
-        real_x_train_values = torch.tensor(scaled_real_trainLoader.list_IDs).reshape(-1,1)
-        real_y_train_values = torch.tensor(scaled_real_trainLoader.labels).reshape(-1,1)
+                   # print(real_y_train_values)
 
-       # print(real_y_train_values)
+                    clf.fit(x_values.reshape(-1,1), sf.get_generalized_approximation(x_values).reshape(-1,1))
+                    clf.fit(real_x_train_values, real_y_train_values)
 
-        clf.fit(x_values.reshape(-1,1), sf.get_generalized_approximation(x_values).reshape(-1,1))
-        clf.fit(real_x_train_values, real_y_train_values)
+                    test_x_values = torch.tensor(scaled_real_testloader.list_IDs).detach().numpy()
+                    predictions = clf.predict(test_x_values.reshape(-1,1))
+                    print("TRAINING COMPLETE")
+                    #print(predictions)
+                    # print(predictions)
+                    # predictions = predictions.detach().numpy()
 
-        test_x_values = torch.tensor(scaled_real_testloader.list_IDs).detach().numpy()
-        predictions = clf.predict(test_x_values.reshape(-1,1))
-        print("TRAINING COMPETE")
-        #print(predictions)
-        # print(predictions)
-        # predictions = predictions.detach().numpy()
+                    real_x_values = torch.tensor(scaled_real_testloader.list_IDs).detach().numpy()
+                    true_y_values = torch.tensor(scaled_real_testloader.labels).detach().numpy()
+                    # print(x_values)
 
-        real_x_values = torch.tensor(scaled_real_testloader.list_IDs).detach().numpy()
-        true_y_values = torch.tensor(scaled_real_testloader.labels).detach().numpy()
-        # print(x_values)
+                    indexes = numpy.argsort(real_x_values)
+                    sorted_x_values = []
+                    sorted_predictions = []
+                    sorted_true_y_values = []
+                    #print(x_values)
+                    for index in indexes:
+                        sorted_x_values.append(real_x_values[index])
+                        sorted_predictions.append(predictions[index])
+                        sorted_true_y_values.append(true_y_values[index])
 
-        indexes = numpy.argsort(real_x_values)
-        sorted_x_values = []
-        sorted_predictions = []
-        sorted_true_y_values = []
-        #print(x_values)
-        for index in indexes:
-            sorted_x_values.append(real_x_values[index])
-            sorted_predictions.append(predictions[index])
-            sorted_true_y_values.append(true_y_values[index])
+                    print(list(zip(sorted_x_values, sorted_predictions, sorted_true_y_values)))
+                    print("MSE: ", sf.MSE(sorted_predictions, sorted_true_y_values))
+                    print("SMAPE: ", sf.SMAPE(sorted_predictions, sorted_true_y_values))
+                    print("MSE LJ: ", sf.MSE(sf.get_LJ_list(sorted_x_values), sorted_true_y_values))
+                    print("SMAPE LJ: ", sf.SMAPE(sf.get_LJ_list(sorted_x_values), sorted_true_y_values))
 
-        print(list(zip(sorted_x_values, sorted_predictions, sorted_true_y_values)))
-        print("MSE: ", sf.MSE(sorted_predictions, sorted_true_y_values))
-        print("SMAPE: ", sf.SMAPE(sorted_predictions, sorted_true_y_values))
-        print("MSE LJ: ", sf.MSE(sf.get_LJ_list(sorted_x_values), sorted_true_y_values))
-        print("SMAPE LJ: ", sf.SMAPE(sf.get_LJ_list(sorted_x_values), sorted_true_y_values))
-
-        plt.plot(sorted_x_values, sorted_predictions, label="predicted values")
-        plt.plot(sorted_x_values, sorted_true_y_values, label="true data")
-        plt.plot(sorted_x_values, sf.get_generalized_approximation(numpy.array(sorted_x_values)), label="generalized function")
-        plt.plot(sorted_x_values, )
-        plt.xlabel("Range [A]")
-        plt.ylabel("force deviation from mean [eV]")
-        plt.legend()
-        plt.show()
+                    #plt.plot(sorted_x_values, sorted_predictions, label="predicted values")
+                    #plt.plot(sorted_x_values, sorted_true_y_values, label="true data")
+                    #plt.plot(sorted_x_values, sf.get_generalized_approximation(numpy.array(sorted_x_values)), label="generalized function")
+                    #plt.plot(sorted_x_values, )
+                    #plt.xlabel("Range [A]")
+                    #plt.ylabel("force deviation from mean [eV]")
+                    #plt.legend()
+                    #plt.show()
