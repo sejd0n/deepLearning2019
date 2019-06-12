@@ -227,9 +227,9 @@ def get_LJ_list(x_values):
 def MSE(New, Old):
     sum = 0
     for x in range(len(New)):
-        sum += (New[x]+Old[x])**2
-
-    return sum/len(New)
+        sum += (float(New[x])-float(Old[x]))**2
+     #   print(x, sum, float(New[x]), float(Old[x]), float(len(New))) 
+    return sum/float(len(New))
 
 def SMAPE(New, Old):
     sum = 0

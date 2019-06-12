@@ -1,12 +1,12 @@
 import supporting_functions as sf
 
 import time
-#import torch
-#import torch.nn as nn
+import torch
+import torch.nn as nn
 import numpy
 import matplotlib.pyplot as plt
-#import torch.nn.functional as F
-#import torch.optim as optim
+import torch.nn.functional as F
+import torch.optim as optim
 
 from sklearn.neural_network import MLPRegressor
 
@@ -15,16 +15,19 @@ from sklearn.neural_network import MLPRegressor
 if __name__ == '__main__':
     # freeze_support()
     accuracies = []
-    runs = 5
+    runs = 1
     lower_boundary = 0.85
     upper_boundary = 3
-    max_iteration = 20000
+    max_iteration = 200000
     learning_rate = 0.01
+    num = 0;
+    MSE = 10;
     Results = [];
-    solvers = ["adam", "sgd", "lbfgs"]
-    activations = ["relu", "logistic", "tanh"]
+    x_test = [0.9, 0.95, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6 ,1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 5, 10, 50]
+    solvers = [ "sgd","adam", "lbfgs"]
+    activations = ["logistic", "relu", "tanh"]
     hidden_neurons = [50,100,150,200,250]
-    x_values = sf.uniform_random_n(lower_boundary, upper_boundary, 3000)
+    x_values = sf.uniform_random_n(lower_boundary, upper_boundary, 350)
     file_path = 'data/sigmau-.csv'
     true_data_epochs = 100
     timer=0
@@ -73,8 +76,8 @@ if __name__ == '__main__':
         # accuracies.append(float(loss / count))
         # print(sf.get_generalized_approximation(x_values).reshape)
      
-        for s in range(3):
-            for a in range(3):
+        for s in range(1):
+            for a in range(1):
                 for n in range(5):
                     for m in range(5):
                         timer2 = time.time()
@@ -87,12 +90,32 @@ if __name__ == '__main__':
                             real_y_train_values = torch.tensor(scaled_real_trainLoader.labels).reshape(-1,1)
 
                            # print(real_y_train_values)
-                            timer = time.time()		
-                            clf.fit(x_values.reshape(-1,1), sf.get_LJ(x_values).reshape(-1,1))
-                            print("Pretraining", time.time()-timer, "s")
                             timer = time.time()
-                            clf.fit(real_x_train_values, real_y_train_values)
-                            print("Training", time.time()-timer, "s")
+                            while(MSE > 0.05 and num < 2000):
+                                for q in range(50):
+                                    clf.partial_fit(x_values.reshape(-1,1), sf.get_LJ(x_values).reshape(-1,1))
+                                predictions = clf.predict(x_values.reshape(-1,1))
+                                listes = sf.get_LJ_list(x_values.reshape(-1,1))
+                                MSE = sf.MSE(predictions, listes)
+                                num += +1
+                                print(num, MSE)
+                            for x in range(len(predictions)):
+                                print(float(x_values.reshape(-1,1)[x]), predictions[x], float(listes[x]), predictions[x]-float(listes[x]))
+                            
+                                
+                            print("Pretraining", time.time()-timer, "s ", MSE)
+                            timer = time.time()
+                            MSE=10
+                            num = 0
+                            #time.sleep(30)
+                            while(MSE > 0.01 and num<5000):
+                                for q in range(20):
+                                    clf.partial_fit(real_x_train_values, real_y_train_values)
+                                predictions = clf.predict(real_x_train_values)
+                                MSE = sf.MSE(predictions, real_y_train_values)
+                                num +=1
+                                print(num, MSE)
+                            print("Training", time.time()-timer, "s ", MSE)
                             
                             test_x_values = torch.tensor(scaled_real_testloader.list_IDs).detach().numpy()
                             predictions = clf.predict(test_x_values.reshape(-1,1))
@@ -118,6 +141,9 @@ if __name__ == '__main__':
                             MSElj[p] = sf.MSE(sf.get_LJ_list(sorted_x_values), sorted_true_y_values)
                             sMAPEr[p] = sf.SMAPE(sorted_predictions, sorted_true_y_values)
                             sMAPElj[p] = sf.SMAPE(sf.get_LJ_list(sorted_x_values), sorted_true_y_values)
+                            for j in x_test:
+                                print(j, float(clf.predict(j)), float(sf.get_LJ(j)))
+                            print("//////////////////////////")
                             print(list(zip(sorted_x_values, sorted_predictions, sorted_true_y_values)))
                             print("MSE: ", MSEr[p])
                             print("SMAPE: ", sMAPEr[p])
