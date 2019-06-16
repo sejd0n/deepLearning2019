@@ -27,18 +27,10 @@ def get_scaling_factor(DataLoader, TestLoader, feature_index=0):
     # returns the factor by which the iterator needs to be scaled to achieve zero weighted scaling
      scale = 0
      distance = 0
-     for i, data in enumerate(DataLoader):
-         features, label = data
-         if features > distance:
-             distance = features
-             scale = label
-     for i, data in enumerate(TestLoader):
-         features, label = data
-         if features > distance:
-             distance = features
-             scale = label
+    
+    
   
-     return float(scale)    
+     return float(-3031.2149515805877)    
   
 
 
@@ -47,6 +39,7 @@ def scale(DataLoader, scaling_factor, feature_index=0):
     labels = []
     for i, data in enumerate(DataLoader):
         features, label = data
+        #print(features)
         label = label - scaling_factor
 
         ids.append(features)
@@ -94,22 +87,29 @@ def numpy_data_to_trainloaders(numpy_data, train_ratio, dataloader_params):
     # validate_objects = floor(validate_ratio * total_objects)
 
     numpy.random.shuffle(numpy_data)
-
+   # print(numpy_data)
     numpy_train = numpy_data[:int(train_objects)]
     # numpy_validate = numpy_data[train_objects:(train_objects+validate_objects)]
     numpy_test = numpy_data[int(train_objects):]
 
-    partition_train, labels_train = numpy_to_x_y(numpy_train)
+    partition1_train,partition2_train,partition3_train, labels_train = numpy_to_x_y(numpy_train)
     # partition_validate, labels, validate = nu
-    partition_test, labels_test = numpy_to_x_y(numpy_test)
-
-    trainset = PytorchDataset(partition_train, labels_train)
+    partition1_test,partition2_test,partition3_test, labels_test = numpy_to_x_y(numpy_test)
+    
+    train_input = numpy.array(list(zip(partition1_train,partition2_train,partition3_train)))
+    print(partition1_test[0],partition3_test[0],partition2_test[0])
+    print(train_input[0])
+    trainset = PytorchDataset(train_input, labels_train)
     trainloader = torch.utils.data.DataLoader(trainset, **dataloader_params)
 
     # validateset = PytorchDataset(partition_validate, labels_validate)
     # validateloader = torch.utils.data.DataLoader(validateset, **dataloader_params)
 
-    testset = PytorchDataset(partition_test, labels_test)
+    test_input = numpy.array(list(zip(partition1_test,partition2_test,partition3_test)))
+
+
+    testset = PytorchDataset(test_input, labels_test)
+    #print(trainloader)
     testloader = torch.utils.data.DataLoader(testset, **dataloader_params)
 
     return trainloader, testloader
@@ -144,11 +144,38 @@ def realset_generator(csv_path, train_ratio, dataloader_params, lower_range, upp
 
         return numpy_data_to_trainloaders(numpy_data, train_ratio, dataloader_params)
 
+def realset_generator3(csv_path, train_ratio, dataloader_params, lower_range, upper_range):
+    with open(csv_path) as csv_file:
+        csv_reader = csv.DictReader(csv_file, delimiter = " ")
+        real_x1 = []
+        real_x2 = []
+        real_x3 = []
+        real_y = []
+        # todo figure out what MRCI is and correct it
+        for line in csv_reader:
+            distance = float(line['NNR'])
+            distance2 = float(line['HeNR'])
+           # if distance >= lower_range and distance <= upper_range:
+            x = distance
+            y = distance2
+            z = x + y
+           # print(x, y, z)
+            real_x1.append(x)
+            real_x2.append(y)
+            real_x3.append(z)
+            real_y.append(float(line['MRCI1']))
+      
+
+        numpy_data = numpy.array(list(zip(real_x1,real_x2,real_x3, real_y)))
+        #numpy_data = numpy.dstack(real_x1,real_x2,real_x3, real_y)
+        #print(real_x3)
+        return numpy_data_to_trainloaders(numpy_data, train_ratio, dataloader_params)
 
 
 def numpy_to_x_y(numpy):
-    # print(numpy)
-    return numpy[:,0], numpy[:,1]
+    #print(numpy)
+    #print("JJJJJJJJJJJJJJJJJJJJJJJJJJ")
+    return numpy[:,0], numpy[:,1], numpy[:,2], numpy[:,3]
 
 def train_scenario(net, criterion, trainloader, optimizer):
 
@@ -213,7 +240,8 @@ def predict_scenario(net, criterion, testloader):
 def print_dataset(dataset):
     for i, data in enumerate(dataset):
         features, label = data
-        print(float(features), float(label))
+       # print(features[0][0])
+        print(float(features[0]),float(features[1]),float(features[2]), float(label))
 
 def get_LJ(x):
     return 4*3*((1/x)**12-(1/x)**6)
