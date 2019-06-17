@@ -26,7 +26,7 @@ if __name__ == '__main__':
     x_test = [0.9, 0.95, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6 ,1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 5, 10, 50]
     solvers = [ "sgd","adam", "lbfgs"]
     activations = ["logistic", "relu", "tanh"]
-    hidden_neurons = [50,100,150,200,250]
+    hidden_neurons = [100,50,100,150,200,250]
     x_values = sf.uniform_random_n(lower_boundary, upper_boundary, 350)
     file_path = 'data/sigmau-.csv'
     true_data_epochs = 100
@@ -76,10 +76,10 @@ if __name__ == '__main__':
         # accuracies.append(float(loss / count))
         # print(sf.get_generalized_approximation(x_values).reshape)
      
-        for s in range(1):
-            for a in range(1):
-                for n in range(5):
-                    for m in range(5):
+        for s in range(3):
+            for a in range(3):
+                for n in range(1):
+                    for m in range(1):
                         timer2 = time.time()
                         for p in range(5):
                             layers = (hidden_neurons[n],hidden_neurons[m])
@@ -141,8 +141,7 @@ if __name__ == '__main__':
                             MSElj[p] = sf.MSE(sf.get_LJ_list(sorted_x_values), sorted_true_y_values)
                             sMAPEr[p] = sf.SMAPE(sorted_predictions, sorted_true_y_values)
                             sMAPElj[p] = sf.SMAPE(sf.get_LJ_list(sorted_x_values), sorted_true_y_values)
-                            for j in x_test:
-                                print(j, float(clf.predict(j)), float(sf.get_LJ(j)))
+                            
                             print("//////////////////////////")
                             print(list(zip(sorted_x_values, sorted_predictions, sorted_true_y_values)))
                             print("MSE: ", MSEr[p])
