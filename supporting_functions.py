@@ -234,7 +234,7 @@ def MSE(New, Old):
 def SMAPE(New, Old):
     sum = 0
     for x in range(len(New)):
-        sum += abs(Old[x]-New[x])/((New[x]+Old[x])/2)
+        sum += abs(New[x]-Old[x])/((abs(Old[x])+abs(New[x]))/2)
 
     return sum/len(New)
 
