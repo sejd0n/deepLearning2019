@@ -79,11 +79,11 @@ if __name__ == '__main__':
      
         for s in range(1):
             for a in range(1):
-                for n in range(5):
-                    for m in range(5):
+                for n in range(1):
+                    for m in range(1):
                         timer2 = time.time()
-                        for p in range(5):
-                            layers = (hidden_neurons[n],hidden_neurons[m])
+                        for p in range(1):
+                            layers = (100,150)
                             clf = MLPRegressor(solver=solvers[s], activation=activations[a], alpha=0.01, hidden_layer_sizes = layers, learning_rate_init=0.01,  random_state = 1, max_iter=max_iteration)
                             print(clf)
                             tr = len(scaled_real_trainLoader.list_IDs)
@@ -129,7 +129,7 @@ if __name__ == '__main__':
                             MSE=10
                             num = 0
                             #time.sleep(30)
-                            while(MSE > 0.01 and num<50):
+                            while(MSE > 0.01 and num<1000):
                                 for q in range(20):
                                     clf.partial_fit(x_val, y_val)
                                 predictions = clf.predict(x_val)
@@ -179,7 +179,26 @@ if __name__ == '__main__':
                                 for t in range(3):
                                     y_test_val.append(float(scaled_real_testloader.labels[i][t]))
 
-
+                            x1=0.7
+                            z1=0.7
+                            listxz = []
+                            temp = []
+                            print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+                            for i1 in range(20):                                
+                                for i1 in range(20):
+                                    temp = []
+                                    listxz = []
+                                    temp.append(x1)
+                                    temp.append(z1)
+                                    temp.append(x1+z1)
+                                    listxz.append(temp)
+                                    print(clf.predict(listxz)[0])
+                                    z1+=0.2
+                                x1+=0.2
+                                print("=======================================")
+                               # print(clf.predict(listxz))
+                                #listxz = []
+                            print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
 
                                   
                          #   test_x_values = torch.tensor(scaled_real_testloader.list_IDs).detach().numpy()
