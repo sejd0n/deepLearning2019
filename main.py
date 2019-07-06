@@ -135,8 +135,6 @@ if __name__ == '__main__':
                             MSElj[p] = sf.MSE(sf.get_LJ_list(sorted_x_values), sorted_true_y_values)
                             sMAPEr[p] = sf.SMAPE(sorted_predictions, sorted_true_y_values)
                             sMAPElj[p] = sf.SMAPE(sf.get_LJ_list(sorted_x_values), sorted_true_y_values)
-                            for j in x_test:
-                                print(j, float(clf.predict(j)), float(sf.get_LJ(j)))
                             print("//////////////////////////")
                             print(list(zip(sorted_x_values, sorted_predictions, sorted_true_y_values)))
                             print("MSE: ", MSEr[p])
